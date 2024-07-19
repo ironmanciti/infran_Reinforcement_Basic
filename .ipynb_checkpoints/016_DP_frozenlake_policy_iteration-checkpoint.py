@@ -1,6 +1,5 @@
 import gymnasium as gym
 import numpy as np
-import copy
 
 # SFFF       (S: 시작점, 안전)
 # FHFH       (F: 얼어있는 표면, 안전)
@@ -15,7 +14,7 @@ SLIPPERY = False  # 결정론적 환경
 env = gym.make('FrozenLake-v1', desc=None,
                map_name=map, is_slippery=SLIPPERY)
 
-GAMMA = 0.9
+GAMMA = 1.0
 THETA = 1e-7
 num_states = env.observation_space.n
 num_actions = env.action_space.n
@@ -49,8 +48,9 @@ while not policy_stable:
             break
 
     #3. 정책 개선
-    old_pi = copy.deepcopy(pi)
-
+    #policy_stable <- true
+    policy_stable = True
+    old_pi = pi
     #각 s에 대해:
     for s in range(num_states):
         # pi_s <- argmax_a(sum(p(s',r|s,a)*[r + gamma*V(s')]))
@@ -62,11 +62,8 @@ while not policy_stable:
         new_action = np.argmax(new_action_values)
         pi[s] = np.eye(num_actions)[new_action]
 
-    if np.array_equal(old_pi, pi):
-        policy_stable = True
-    else:
+    if old_pi.all() != pi.all():
         policy_stable = False
-        
     #정책이 안정화 되면 V와 pi를 반환하고 종료, 아니면 2로 돌아감.
 
 print("Optimal Value Function = \n", V.reshape(
