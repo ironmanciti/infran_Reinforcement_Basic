@@ -49,9 +49,9 @@ for i in range(n_games):
     while not terminated and not truncated:
 
         if with_policy:  # 간단한 결정론적 정책 사용
-            action = policy[obs]   # 정책에 따라 행동 선택
+            action = policy[obs]
         else:  # 정책이 없는 경우
-            action = env.action_space.sample()  # 랜덤 행동 선택
+            action = env.action_space.sample()
 
         obs, reward, terminated, truncated, info = env.step(action)
         score += reward  # 점수에 보상 추가
