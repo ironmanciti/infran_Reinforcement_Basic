@@ -38,26 +38,32 @@ n_outputs = env.action_space.n  # 출력 차원 수 (액션 수)
 # 리플레이 메모리 클래스
 class ExperienceReplay:
     def __init__(self, capacity):
-        self.capacity = capacity
-        self.memory = []
-        self.position = 0
+        self.capacity = capacity  # 리플레이 메모리의 최대 크기 설정
+        self.memory = []  # 경험을 저장할 메모리 리스트 초기화
+        self.position = 0  # 현재 저장 위치 초기화
 
     # 경험 추가 함수
     def push(self, state, action, new_state, reward, done):
+        # 주어진 경험(transition)을 메모리에 추가
         transition = (state, action, new_state, reward, done)
 
         if self.position >= len(self.memory):
+            # 메모리에 빈 공간이 있으면 경험 추가
             self.memory.append(transition)
         else:
+            # 메모리가 가득 차면 오래된 경험을 덮어쓰기
             self.memory[self.position] = transition
-
+            
+        # 저장 위치를 다음으로 이동, 용량을 초과하면 처음으로 돌아감
         self.position = (self.position + 1) % self.capacity
 
     # 경험 샘플링 함수
     def sample(self, batch_size):
+        # 메모리에서 주어진 배치 크기만큼 무작위로 샘플링하여 반환
         return zip(*random.sample(self.memory, batch_size))
 
     def __len__(self):
+        # 현재 메모리에 저장된 경험의 수를 반환
         return len(self.memory)
 
 # 신경망 클래스
@@ -77,15 +83,18 @@ class NeuralNetwork(nn.Module):
 
 # 액션 선택 함수
 def select_action(state, steps_done):
+    # 입실론 값 계산
     e_threshold = e_end + (e_start - e_end) * \
         math.exp(-1. * steps_done/e_decay)
 
     if random.random() > e_threshold:
+        # 입실론보다 큰 경우, Q 함수에 따라 행동 선택
         with torch.no_grad():
-            state = torch.Tensor(state).to(device)
-            action_values = Q(state)
-            action = torch.argmax(action_values).item()
-    else:
+            state = torch.Tensor(state).to(device)   # 상태를 텐서로 변환하고 장치에 할당
+            action_values = Q(state)   # Q 함수를 사용하여 각 행동의 가치 계산
+            action = torch.argmax(action_values).item()   # 가장 높은 가치를 갖는 행동 선택
+    else: 
+        # 입실론보다 작은 경우, 무작위 행동 선택 (탐색)
         action = env.action_space.sample()
 
     return action
@@ -96,14 +105,22 @@ memory = ExperienceReplay(replay_memory_size)
 # 타겟 Q함수 초기화 (랜덤 가중치)
 target_Q = NeuralNetwork().to(device)
 
-# Q함수 초기화 (랜덤 가중치)
+# Q함수 초기화 (랜덤 가중치로 신경망 생성)
 Q = NeuralNetwork().to(device)
+
+# 손실 함수 설정 (평균 제곱 오차)
 criterion = nn.MSELoss()
+
+# 최적화 알고리즘 설정 (Adam 옵티마이저)
 optimizer = optim.Adam(Q.parameters(), lr=learning_rate)
 
+# 타겟 네트워크 업데이트 카운터 초기화
 update_target_counter = 0
+# 각 에피소드에서 얻은 보상을 저장할 리스트 초기화
 reward_history = []
+# 총 스텝 수 초기화
 total_steps = 0
+# 학습 시작 시간 기록
 start_time = time.time()
 
 # 에피소드 루프
@@ -134,16 +151,20 @@ for episode in range(num_episodes):
             states, actions, new_states, rewards, dones = memory.sample(
                 batch_size)
 
+            # 샘플링한 데이터를 텐서로 변환하여 장치에 할당
             states = torch.Tensor(states).to(device)
             actions = torch.LongTensor(actions).to(device)
             new_states = torch.Tensor(new_states).to(device)
             rewards = torch.Tensor([rewards]).to(device)
             dones = torch.Tensor(dones).to(device)
-
+            
+            # 타겟 Q 네트워크로부터 새로운 상태의 Q 값 계산
             new_action_values = target_Q(new_states).detach()
 
+            # 타겟 값 계산
             y_target = rewards + \
                 (1 - dones) * GAMMA * torch.max(new_action_values, 1)[0]
+            # 예측 값 계산
             y_pred = Q(states).gather(1, actions.unsqueeze(1))
 
             # 손실 계산 및 역전파
@@ -166,8 +187,13 @@ for episode in range(num_episodes):
             print(f"{episode} episode finished after {reward:.2f} rewards")
             break
 
+# 평균 보상 출력
 print("Average rewards: %.2f" % (sum(reward_history)/num_episodes))
+
+# 마지막 50 에피소드의 평균 보상 출력
 print("Average of last 100 episodes: %.2f" % (sum(reward_history[-50:])/50))
+
+# 하이퍼파라미터 정보 출력
 print("---------------------- Hyper parameters --------------------------------------")
 print(
     f"GAMMA:{GAMMA}, learning rate: {learning_rate}, hidden layer: {hidden_layer}")
@@ -176,6 +202,8 @@ print(f"epsilon_start: {e_start}, epsilon_end: {e_end}, " +
       f"epsilon_decay: {e_decay}")
 print(
     f"update frequency: {target_nn_update_frequency}, clipping: {clip_error}")
+
+# 경과 시간 출력
 elapsed_time = time.time() - start_time
 print(f"Time Elapsed : {elapsed_time//60} min {elapsed_time%60:.0} sec")
 

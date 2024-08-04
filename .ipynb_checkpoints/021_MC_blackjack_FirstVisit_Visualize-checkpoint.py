@@ -8,7 +8,7 @@ stick_threshold = 17  # 스틱(threshold) 기준점 설정 (17 이상이면 더 
 win_cnt = 0  # 승리 횟수 초기화
 lose_cnt = 0  # 패배 횟수 초기화
 draw_cnt = 0  # 무승부 횟수 초기화
-num_episodes = 100,000  # 에피소드 수 설정 (총 100,000번의 게임 진행)
+num_episodes = 100_000  # 에피소드 수 설정 (총 100,000번의 게임 진행)
 GAMMA = 1  # 할인율 설정 (여기서는 할인 없음, 즉 미래 보상과 현재 보상을 동일하게 취급)
 
 # Blackjack 환경 생성, ab=True를 설정하면 게임이 Sutton and Barto의 책에서 설명된 대로 정확하게 진행
@@ -73,6 +73,7 @@ sample_state = (21, 3, True)
 print("state {}의 가치 = {:.2f}".format(sample_state, V[sample_state]))
 print(
     f"     player가 손에 {sample_state[0]}를 들고 dealer가 {sample_state[1]}를 보여주고 있을 때")
+
 sample_state = (14, 1, False)
 print("state {}의 가치 = {:.2f}".format(sample_state, V[sample_state]))
 print(
@@ -89,18 +90,19 @@ no_usable_ace = np.apply_along_axis(lambda idx: V[(idx[0], idx[1], False)],
 usable_ace = np.apply_along_axis(lambda idx: V[(idx[0], idx[1], True)],
                                  2, np.dstack([X, Y]))
 
+# 3D 그래프를 위한 플롯 생성
 fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(12, 4),
                                subplot_kw={'projection': '3d'})
 
 ax0.plot_surface(X, Y, no_usable_ace, cmap=plt.cm.YlGnBu_r)
-ax0.set_xlabel('Dealer open Cards')
-ax0.set_ylabel('Player Cards')
+ax0.set_xlabel('Player Cards')
+ax0.set_ylabel('Dealer open Cards')
 ax0.set_zlabel('MC Estimated Value')
 ax0.set_title('No Useable Ace')
 
 ax1.plot_surface(X, Y, usable_ace, cmap=plt.cm.YlGnBu_r)
-ax1.set_xlabel('Dealer open Cards')
-ax1.set_ylabel('Player Cards')
+ax1.set_xlabel('Player Cards')
+ax1.set_ylabel('Dealer open Cards')
 ax1.set_zlabel('MC Estimated Value')
 ax1.set_title('Useable Ace')
 

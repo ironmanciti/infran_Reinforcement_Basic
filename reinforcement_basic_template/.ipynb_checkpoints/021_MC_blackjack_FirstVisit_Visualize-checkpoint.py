@@ -68,8 +68,8 @@ fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(12, 4),
                                subplot_kw={'projection': '3d'})
 
 ax0.plot_surface(X, Y, no_usable_ace, cmap=plt.cm.YlGnBu_r)
-ax0.set_xlabel('Dealer open Cards')
-ax0.set_ylabel('Player Cards')
+ax0.set_xlabel('Player Cards')
+ax0.set_ylabel('Dealer open Cards')
 ax0.set_zlabel('MC Estimated Value')
 ax0.set_title('No Useable Ace')
 

@@ -11,14 +11,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
-# 알고리즘의 파라미터 설정: 스텝 사이즈 alpha, 작은 e>0
-GAMMA = 0.99
+# 알고리즘의 파라미터 설정: 스텝 사이즈 alpha (0, 1], 0 보다 큰 작은 탐색률 e 
 
 
 # 'FrozenLake-v1' 게임 환경 생성
 
 
-# Q(s,a)를 초기화(Q(terminal, .)=0 제외)
+# Q(s,a)를 초기화
 
 
 # 각 에피소드를 위한 반복문
